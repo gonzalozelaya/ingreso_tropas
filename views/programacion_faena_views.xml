@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de árbol -->
+    <record id="view_programacion_faena_tree" model="ir.ui.view">
+        <field name="name">programacion.faena.tree</field>
+        <field name="model">programacion.faena</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="fecha"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de formulario -->
+    <record id="view_programacion_faena_form" model="ir.ui.view">
+            <field name="name">programacion.faena.form</field>
+            <field name="model">programacion.faena</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_abrir_wizard_agregar_linea" 
+                                string="Agregar Líneas" 
+                                type="object" 
+                                class="oe_highlight"/>
+                        <!-- otros botones -->
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="fecha"/>
+                        </group>
+                        <field name="lineas_faena">
+                            <tree editable="bottom">
+                                <field name="numero_inicio"/>
+                                <field name="numero_final"/>
+                                <field name="cabezas"/>
+                                <field name="tropa"/>
+                                <field name="corral"/>
+                                <field name="tipo_hacienda_id"/>
+                            </tree>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    <!-- Acciones y menús -->
+    <record id="action_programacion_faena" model="ir.actions.act_window">
+        <field name="name">Programación de Faena</field>
+        <field name="res_model">programacion.faena</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_programacion_faena_main" name="Programación" parent="menu_ingreso_tropa_root" action="action_programacion_faena" sequence="10"/>
+</odoo>

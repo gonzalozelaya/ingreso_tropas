@@ -1,0 +1,33 @@
+<!-- Vista del wizard -->
+<odoo>
+    <data>
+<record id="view_agregar_lineas_faena_wizard_form" model="ir.ui.view">
+    <field name="name">agregar.lineas.faena.wizard.form</field>
+    <field name="model">agregar.lineas.faena.wizard</field>
+    <field name="arch" type="xml">
+        <form>
+            <sheet>
+                <group>
+                    <group>
+                    </group>
+                    <group>
+                    </group>
+                    <field name="programacion_id" invisible="1"/>
+                    <field name="tropa_id"/>
+                    <field name="composicion_linea_id"/>
+                    <field name="cabezas_programadas"/>
+                    <field name="destino"/>
+                    <field name="corral"/>
+                    <field name="cantidad_restante"/>
+                    <field name="total_kgs_aprox" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_agregar_linea" string="Agregar" type="object" class="oe_highlight"/>
+                    <button string="Cancelar" special="cancel" class="oe_link"/>
+                </footer>
+            </sheet>
+        </form>
+    </field>
+</record>
+    </data>
+</odoo>

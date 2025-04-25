@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menú principal -->
+    <menuitem id="menu_ingreso_tropa_root" name="Ingreso de Tropas" sequence="10"/>
+    <menuitem id="menu_ingreso_tropa_main" name="Registros de Ingreso" parent="menu_ingreso_tropa_root" sequence="10"/>
+
+    <menuitem id="menu_ingreso_tropa_config" name="Configuración" parent="menu_ingreso_tropa_root" sequence="20"/>
+    
+    <!-- Acción para abrir la vista de lista -->
+    <record id="action_ingreso_tropa" model="ir.actions.act_window">
+        <field name="name">Ingresos de Tropa</field>
+        <field name="res_model">ingreso.tropa</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Crea un nuevo registro de ingreso de tropa
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menú que ejecuta la acción -->
+    <menuitem id="menu_action_ingreso_tropa" name="Registros de Ingreso" parent="menu_ingreso_tropa_main" action="action_ingreso_tropa" sequence="10"/>
+    
+    <!-- Vista de árbol (lista) -->
+    <record id="view_ingreso_tropa_tree" model="ir.ui.view">
+        <field name="name">ingreso.tropa.tree</field>
+        <field name="model">ingreso.tropa</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" string="Referencia"/>
+                <field name="fecha_ingreso"/>
+                <field name="num_guia" string="N° Guía"/>
+                <field name="proveedor_id" string="Proveedor"/>
+                <field name="total_cabezas" string="Cabezas"/>
+                <field name="kg_vivos" string="Kg Vivos"/>
+                <field name="dominio" string="Patente"/>
+                <field name="chofer" string="Chofer"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- Vista de formulario -->
+    <record id="view_ingreso_tropa_form" model="ir.ui.view">
+        <field name="name">ingreso.tropa.form</field>
+        <field name="model">ingreso.tropa</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                     <field name="state" widget="statusbar"/>
+                    <button name="action_asignar_tropa" string="Asignar N°" type="object" class="btn-primary"/>
+                    <!--<button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>-->
+                    <!--<field name="state" widget="statusbar"/>-->
+                </header>
+                
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1" class="oe_inline"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <!-- To modify later<div class="oe_highlight" style="margin: 10px 0; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;width:100% !important;">
+                                    <label for="num_tropa" string="Número de Tropa" style="font-weight: bold; font-size: 14px;"/>
+                                    <field name="num_tropa" style="font-size: 18px; font-weight: bold; color: #333;"/>
+                            </div>
+                            <br></br>-->
+                            <field name="num_tropa"/>
+                            <field name="fecha_ingreso"/>
+                            <field name="hora_ingreso" widget="float_time"/>
+                            <field name="num_guia"/>
+                            <field name="cert_senasa_dta"/>
+                            <field name="renspa"/>
+                        </group>
+                        
+                        <group>
+                            <field name="total_cabezas"/>
+                            <field name="kg_vivos"/>
+                            <field name="horas_viaje"/>
+                            <field name="peso_promedio" readonly="1"/>
+                            <field name="procedencia"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                     <page string="Composición">
+                            <field name="composicion_tropa_ids" mode="tree,form">
+                                <tree editable="bottom">
+                                    <field name="cantidad"/>
+                                    <field name="tipo_hacienda_id"/>
+                                    <field name="kilos"/>
+                                    <field name="corral" column_invisible="parent.state != 'tropa'" readonly="True"/>
+                                    <field name="cantidad_restante" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Transporte">
+                            <group>
+                                <group>
+                                    <field name="dominio"/>
+                                    <field name="chofer"/>
+                                    <field name="camion_desc"/>
+                                </group>
+                                <group>
+                                    <field name="proveedor_id"/>
+                                    <field name="usuario_id" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Procedencia">
+                            <group>
+                                <field name="provincia_id"/>
+                                <field name="localidad"/>
+                            </group>
+                        </page>
+                        
+                        
+                        
+                        <page string="Operadores">
+                            <group>
+                                <field name="operador_id"/>
+                                <field name="operador_alternativo_id"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Observaciones">
+                            <field name="observaciones" placeholder="Ingrese cualquier observación relevante sobre el ingreso..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Configuración de tipos de hacienda -->
+    <record id="action_tipo_hacienda" model="ir.actions.act_window">
+        <field name="name">Tipos de Hacienda</field>
+        <field name="res_model">tipo.hacienda</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    
+    <menuitem id="menu_tipo_hacienda" name="Tipos de Hacienda" parent="menu_ingreso_tropa_config" action="action_tipo_hacienda" sequence="10"/>
+    
+    <!-- Vistas para tipos de hacienda -->
+    <record id="view_tipo_hacienda_tree" model="ir.ui.view">
+        <field name="name">tipo.hacienda.tree</field>
+        <field name="model">tipo.hacienda</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="code" string="Código"/>
+                <field name="name" string="Descripción"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_tipo_hacienda_form" model="ir.ui.view">
+        <field name="name">tipo.hacienda.form</field>
+        <field name="model">tipo.hacienda</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="code" string="Código"/>
+                        <field name="name" string="Descripción"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
