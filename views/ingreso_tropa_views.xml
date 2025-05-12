@@ -1,31 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Menú principal -->
-    <menuitem id="menu_ingreso_tropa_root" name="Ingreso de Tropas" sequence="10"/>
+    <menuitem id="menu_ingreso_tropa_root" name="Ciclo I" sequence="10"/>
+    
     <menuitem id="menu_ingreso_tropa_main" name="Registros de Ingreso" parent="menu_ingreso_tropa_root" sequence="10"/>
 
     <menuitem id="menu_ingreso_tropa_config" name="Configuración" parent="menu_ingreso_tropa_root" sequence="20"/>
     
-    <!-- Acción para abrir la vista de lista -->
-    <record id="action_ingreso_tropa" model="ir.actions.act_window">
-        <field name="name">Ingresos de Tropa</field>
+    <!-- Acciones y menús separados para cada estado -->
+
+    <!-- 1. Acción y menú para estado 'ingreso' -->
+    <record id="action_ingreso_tropa_ingreso" model="ir.actions.act_window">
+        <field name="name">Ingresos en Proceso</field>
         <field name="res_model">ingreso.tropa</field>
         <field name="view_mode">tree,form</field>
+        <field name="domain">[('state','=','ingreso')]</field>
+        <field name="context">{'default_state': 'ingreso'}</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Crea un nuevo registro de ingreso de tropa
-            </p>
+            <p class="o_view_nocontent_smiling_face">Registros en proceso de ingreso</p>
         </field>
     </record>
+
+    <menuitem id="menu_action_ingreso_tropa_ingreso" 
+              name="Ingresos en Proceso" 
+              parent="menu_ingreso_tropa_main" 
+              action="action_ingreso_tropa_ingreso" 
+              sequence="10"/>
+
+    <!-- 2. Acción y menú para estado 'tropa' -->
+    <record id="action_ingreso_tropa_tropa" model="ir.actions.act_window">
+        <field name="name">Tropas Asignadas</field>
+        <field name="res_model">ingreso.tropa</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state','=','tropa')]</field>
+        <field name="context">{'default_state': 'tropa'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tropas con número asignado</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_action_ingreso_tropa_tropa" 
+              name="Tropas Asignadas" 
+              parent="menu_ingreso_tropa_main" 
+              action="action_ingreso_tropa_tropa" 
+              sequence="20"/>
+
+    <!-- Vistas tree personalizadas para cada estado -->
     
-    <!-- Menú que ejecuta la acción -->
-    <menuitem id="menu_action_ingreso_tropa" name="Registros de Ingreso" parent="menu_ingreso_tropa_main" action="action_ingreso_tropa" sequence="10"/>
-    
-    <!-- Vista de árbol (lista) -->
-    <record id="view_ingreso_tropa_tree" model="ir.ui.view">
-        <field name="name">ingreso.tropa.tree</field>
+    <!-- Vista para estado 'ingreso' -->
+    <record id="view_ingreso_tropa_tree_ingreso" model="ir.ui.view">
+        <field name="name">ingreso.tropa.tree.ingreso</field>
         <field name="model">ingreso.tropa</field>
+        <field name="priority" eval="10"/>
         <field name="arch" type="xml">
-            <tree>
+            <tree string="Ingresos en Proceso">
                 <field name="name" string="Referencia"/>
                 <field name="fecha_ingreso"/>
                 <field name="num_guia" string="N° Guía"/>
@@ -34,6 +62,27 @@
                 <field name="kg_vivos" string="Kg Vivos"/>
                 <field name="dominio" string="Patente"/>
                 <field name="chofer" string="Chofer"/>
+                <field name="estado_tropa" string="Estado" widget="badge" decoration-success="estado_tropa == 'hecho'" decoration-info="estado_tropa == 'enfaena'" decoration-danger="estado_tropa == 'pendiente'"/>
+                <field name="state" column_invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista para estado 'tropa' -->
+    <record id="view_ingreso_tropa_tree_tropa" model="ir.ui.view">
+        <field name="name">ingreso.tropa.tree.tropa</field>
+        <field name="model">ingreso.tropa</field>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <tree string="Tropas Asignadas">
+                <field name="num_tropa" string="N° Tropa"/>
+                <field name="name" string="Referencia"/>
+                <field name="fecha_ingreso"/>
+                <field name="proveedor_id" string="Proveedor"/>
+                <field name="total_cabezas" string="Cabezas"/>
+                <field name="kg_vivos" string="Kg Vivos"/>
+                <field name="peso_promedio" string="Peso Prom."/>
+                <field name="state" column_invisible="1"/>
             </tree>
         </field>
     </record>
@@ -46,7 +95,7 @@
             <form>
                 <header>
                      <field name="state" widget="statusbar"/>
-                    <button name="action_asignar_tropa" string="Asignar N°" type="object" class="btn-primary"/>
+                    <button name="action_asignar_tropa" string="Asignar N° Tropa" type="object" class="btn-primary" invisible="state == 'tropa'"/>
                     <!--<button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>-->
                     <!--<field name="state" widget="statusbar"/>-->
                 </header>
@@ -67,10 +116,12 @@
                             <br></br>-->
                             <field name="num_tropa"/>
                             <field name="fecha_ingreso"/>
-                            <field name="hora_ingreso" widget="float_time"/>
+                            <!--<field name="hora_ingreso" widget="float_time"/>-->
                             <field name="num_guia"/>
                             <field name="cert_senasa_dta"/>
                             <field name="renspa"/>
+                            <field name="proveedor_id"/>
+                            <field name="transporte_id"/>
                         </group>
                         
                         <group>
@@ -84,7 +135,7 @@
                     
                     <notebook>
                      <page string="Composición">
-                            <field name="composicion_tropa_ids" mode="tree,form">
+                            <field name="composicion_tropa_ids" mode="tree,form" readonly="state == 'tropa'">
                                 <tree editable="bottom">
                                     <field name="cantidad"/>
                                     <field name="tipo_hacienda_id"/>
@@ -94,7 +145,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Transporte">
+                        <page string="Datos transporte">
                             <group>
                                 <group>
                                     <field name="dominio"/>
@@ -102,8 +153,8 @@
                                     <field name="camion_desc"/>
                                 </group>
                                 <group>
-                                    <field name="proveedor_id"/>
                                     <field name="usuario_id" readonly="1"/>
+                                    <field name="estado_tropa"/>
                                 </group>
                             </group>
                         </page>
@@ -114,9 +165,6 @@
                                 <field name="localidad"/>
                             </group>
                         </page>
-                        
-                        
-                        
                         <page string="Operadores">
                             <group>
                                 <field name="operador_id"/>
@@ -126,6 +174,15 @@
                         
                         <page string="Observaciones">
                             <field name="observaciones" placeholder="Ingrese cualquier observación relevante sobre el ingreso..."/>
+                        </page>
+                        <page string="Bajas">
+                            <field name="animales_muertos_ids" mode="tree,form">
+                                <tree editable="bottom">
+                                    <field name="cantidad"/>
+                                    <field name="tipo_hacienda_id"/>
+                                    <field name="notas" />
+                                </tree>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>

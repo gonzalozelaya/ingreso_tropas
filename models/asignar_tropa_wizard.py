@@ -1,5 +1,5 @@
 from odoo import models, fields, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -9,12 +9,19 @@ class IngresoTropaWizard(models.Model):
     
     # Campos del wizard
     guia_id = fields.Many2one('ingreso.tropa', string='Tropa por N° de Guía', required=True)
-    numero_tropa = fields.Char(string='Número de Tropa', required=True)
+    numero_tropa = fields.Char(
+        string='Número de Tropa',
+        default=lambda self: self._get_next_tropa_suggestion(),
+        help="Número sugerido (se confirmará al guardar)",
+        required = True
+    )
     
     # Campos relacionados (solo lectura)
-    fecha_ingreso = fields.Date(related='guia_id.fecha_ingreso', string='Fecha Ingreso', readonly=True)
+    fecha_ingreso = fields.Datetime(related='guia_id.fecha_ingreso', string='Fecha Ingreso', readonly=True)
     hora_ingreso = fields.Float(related='guia_id.hora_ingreso', string='Hora Ingreso', readonly=True)
-    numero_guia = fields.Integer(related='guia_id.num_guia', string='N° de Guía', readonly=True)
+    numero_guia = fields.Char(
+        string='N° de Guía',
+    )
     total_cabezas = fields.Integer(related='guia_id.total_cabezas', string='Total Cabezas', readonly=True)
     kgs_vivos = fields.Float(related='guia_id.kg_vivos', string='Kgrs. Vivos', readonly=True)
     
@@ -25,6 +32,14 @@ class IngresoTropaWizard(models.Model):
         string='Composición de Tropa',
         required=True
     )
+
+    @api.constrains('composicion_line_ids')
+    def _check_tipo_tercero(self):
+        for record in self:
+            _logger.info('Check')
+            for line in record.composicion_line_ids:
+               if line.corral == 0:
+                   raise ValidationError('Corral requerido en las lineas de composición')
     
     @api.model
     def default_get(self, fields):
@@ -51,7 +66,6 @@ class IngresoTropaWizard(models.Model):
         # Validación mejorada
         if not self.composicion_line_ids:
             raise UserError("No hay líneas de composición para procesar")
-        
         lineas_sin_corral = self.composicion_line_ids.filtered(lambda linea: not linea.corral)
         if lineas_sin_corral:
             raise UserError(
@@ -79,6 +93,9 @@ class IngresoTropaWizard(models.Model):
                             linea.corral, linea.composicion_id.corral)
         
         # Actualización del registro principal
+        sequence = self.env['ir.sequence'].search([('code','=','ingreso.tropa.guia')])
+        if sequence and self.numero_tropa == sequence.number_next_actual:
+            vals['num_guia'] = self.env['ir.sequence'].next_by_code('ingreso.tropa.guia')
         self.guia_id.write({
             'num_tropa': self.numero_tropa,
             'state': 'tropa',
@@ -91,6 +108,13 @@ class IngresoTropaWizard(models.Model):
         
         return {'type': 'ir.actions.act_window_close'}
 
+    def _get_next_tropa_suggestion(self):
+        sequence = self.env['ir.sequence'].search([('code','=','ingreso.tropa.tropa')])
+        if sequence:
+            return sequence._get_current_sequence().number_next_actual
+        return ""
+
+    
 
 class IngresoTropaWizardLine(models.Model):
     _name = 'ingreso.tropa.wizard.line'

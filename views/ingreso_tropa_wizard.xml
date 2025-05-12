@@ -7,32 +7,36 @@
             <form string="Asignar Número de Tropa">
                 <sheet>
                     <group>
-                        <field name="guia_id" invisible="1"/>
                         <group>
+                            <field name="guia_id" invisible="1"/>
                             <field name="numero_tropa" string="Número de Tropa" placeholder="Ingrese el número de tropa"/>
                         </group>
-                        <group string="Datos de la Guía" col="4">
+                    </group>
+                    <group string="Datos de la Guía">
+                        <group>
                             <field name="fecha_ingreso"/>
                             <field name="hora_ingreso" widget="float_time"/>
+                        </group>
+                        <group>
                             <field name="numero_guia"/>
                             <field name="total_cabezas"/>
                             <field name="kgs_vivos"/>
                         </group>
-                         <notebook>
-                            <page string="Composición">
-                                <field name="composicion_line_ids">
-                                    <tree editable="bottom">
-                                        <field name="tipo_hacienda_id"/>
-                                        <field name="cantidad"/>
-                                        <field name="kilos"/>
-                                        <field name="promedio_cabeza" optional ="hide"/>
-                                        <field name="corral" required="1"/>
-                                        <field name="composicion_id" optional="hide"/>
-                                    </tree>
-                                </field>
-                            </page>
-                        </notebook>
                     </group>
+                     <notebook>
+                        <page string="Composición">
+                            <field name="composicion_line_ids">
+                                <tree editable="bottom">
+                                    <field name="tipo_hacienda_id"/>
+                                    <field name="cantidad"/>
+                                    <field name="kilos"/>
+                                    <field name="promedio_cabeza" optional ="hide"/>
+                                    <field name="corral" required="1"/>
+                                    <field name="composicion_id" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <footer>
                     <button name="action_asignar_tropa" string="Confirmar" type="object" class="btn-primary"/>

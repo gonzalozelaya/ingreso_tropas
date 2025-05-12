@@ -17,3 +17,7 @@ access_agregar_lineas_wizard_user,agregar.lineas.faena.wizard.user,model_agregar
 access_agregar_lineas_wizard_manager,agregar.lineas.faena.wizard.manager,model_agregar_lineas_faena_wizard,base.group_erp_manager,1,1,1,1
 access_ingreso_tropa_wizard_line_user,ingreso.tropa.wizard.line.user,model_ingreso_tropa_wizard_line,base.group_user,1,0,0,0
 access_ingreso_tropa_wizard_line_manager,ingreso.tropa.wizard.line.manager,model_ingreso_tropa_wizard_line,base.group_erp_manager,1,1,1,1
+access_animales_muertos_user,animales.muertos.user,model_animales_muertos,base.group_user,1,1,1,0
+access_animales_muertos_manager,animales.muertos.manager,model_animales_muertos,base.group_system,1,1,1,1
+access_tropa_transporte_user,tropa.transporte.user,model_tropa_transporte,base.group_user,1,1,1,0
+access_tropa_transporte_manager,tropa.transporte.manager,model_tropa_transporte,base.group_system,1,1,1,1

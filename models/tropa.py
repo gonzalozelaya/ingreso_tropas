@@ -1,19 +1,32 @@
 from odoo import models, fields, api
+import logging
 
+_logger = logging.getLogger(__name__)
 class IngresoTropa(models.Model):
     _name = 'ingreso.tropa'
     _description = 'Registro de Ingreso de Tropas'
     
     # Campos básicos
-    name = fields.Char(string='Referencia', readonly=True, default='Nuevo')
-    fecha_ingreso = fields.Date(string='Fecha Ingreso', default=fields.Date.today, required=True)
-    hora_ingreso = fields.Float(string='Hora Ingreso', required=True)
-    num_guia = fields.Integer(string='N° de Guía', required=True)
+    name = fields.Char(string='Referencia', readonly=True, compute='_compute_name')
+    fecha_ingreso = fields.Datetime(string='Fecha Ingreso', default=fields.Date.today, required=True)
+    hora_ingreso = fields.Float(string='Hora Ingreso')
+    num_guia = fields.Integer(
+        string='N° de Guía',
+        required=True,
+        default=lambda self: self._get_next_guia(),
+        store = True,
+        copy=False
+    )
     cert_senasa_dta = fields.Char(string='Cert. SENASA DTA', required=True)
     renspa = fields.Char(string='RENSPA', required=True)
-    total_cabezas = fields.Integer(string='Total Cabezas', required=True)
-    kg_vivos = fields.Float(string='Kgrs. Vivos', required=True)
+    total_cabezas = fields.Integer(string='Total Cabezas', compute='_compute_total_cabezas')
+    kg_vivos = fields.Float(string='Kgrs. Vivos', compute='_compute_kgs_vivos')
     horas_viaje = fields.Float(string='Hrs. Viaje')
+    estado_tropa = fields.Selection([
+        ('pendiente', 'Pendiente'),
+        ('enfaena', 'En Faena'),
+        ('hecho', 'Hecho')
+    ], string='Estado',default="pendiente")
     
     # Selección para procedencia
     procedencia = fields.Selection([
@@ -25,9 +38,10 @@ class IngresoTropa(models.Model):
     observaciones = fields.Text(string='Observaciones')
     
     # Información del transporte
-    dominio = fields.Char(string='Dominio', required=True)
-    chofer = fields.Char(string='Chofer', required=True)
-    camion_desc = fields.Char(string='Camión')
+    transporte_id = fields.Many2one('tropa.transporte', string="Camión")
+    dominio = fields.Char(string='Dominio', related ='transporte_id.dominio')
+    chofer = fields.Char(string='Chofer', related ='transporte_id.chofer_nombre')
+    camion_desc = fields.Char(string='Camión', related = 'transporte_id.marca')
     proveedor_id = fields.Many2one('res.partner', string='Proveedor', required=True)
     
     # Información geográfica
@@ -43,12 +57,55 @@ class IngresoTropa(models.Model):
     
     # Composición de la tropa
     composicion_tropa_ids = fields.One2many('composicion.tropa', 'ingreso_id', string='Composición Tropa')
+
+    # Animales muertos
+    animales_muertos_ids = fields.One2many('animales.muertos', 'ingreso_id', string='Animales Muertos')
     
     # Campos calculados
     peso_promedio = fields.Float(string='Peso Promedio (kg)', compute='_compute_peso_promedio', store=True)
 
     state = fields.Selection([('ingreso','Ingreso'),('tropa','Tropa')],readonly=True)
     num_tropa = fields.Integer('Tropa',readonly=True)
+
+    def _get_next_guia(self):
+        sequence = self.env['ir.sequence'].search([('code','=','ingreso.tropa.guia')])
+        if sequence:
+            return sequence._get_current_sequence().number_next_actual
+        return ""
+
+    @api.onchange('proveedor_id')
+    def _onchange_proveedor(self):
+        for record in self:
+            if record.proveedor_id.city:
+                record.localidad = record.proveedor_id.city
+            if record.proveedor_id.state_id:
+                record.provincia_id = record.proveedor_id.state_id.id
+
+    @api.depends('num_guia', 'num_tropa', 'state')
+    def _compute_name(self):
+        for record in self:
+            if record.state == 'tropa' and record.num_tropa:
+                record.name = f"TROPA-{str(record.num_tropa).zfill(8)}"
+            else:
+                record.name = f"GUIA-{str(record.num_guia).zfill(8)}"
+    
+    @api.depends('composicion_tropa_ids')
+    def _compute_total_cabezas(self):
+        for record in self:
+            total_cabezas = 0
+            for line in record.composicion_tropa_ids:
+                total_cabezas += line.cantidad
+            record.total_cabezas = total_cabezas
+        return
+
+    @api.depends('composicion_tropa_ids')
+    def _compute_kgs_vivos(self):
+        for record in self:
+            total_kgs = 0
+            for line in record.composicion_tropa_ids:
+                total_kgs += line.kilos
+            record.kg_vivos = total_kgs
+        return
     
     @api.depends('kg_vivos', 'total_cabezas')
     def _compute_peso_promedio(self):
@@ -60,12 +117,16 @@ class IngresoTropa(models.Model):
     
     @api.model
     def create(self, vals):
-        if vals.get('name', 'Nuevo') == 'Nuevo':
-            if vals.get('num_guia'):
-                vals['name'] = self._generate_guia_name(vals['num_guia'])
-            else:
-                vals['name'] = self.env['ir.sequence'].next_by_code('ingreso.tropa') or 'Nuevo'
-        return super(IngresoTropa, self).create(vals)
+        # Solo consumir secuencia si el número coincide con el próximo esperado
+        sequence = self.env['ir.sequence'].search([('code','=','ingreso.tropa.guia')])
+        _logger.info(vals.get('num_guia'))
+        _logger.info(sequence.number_next_actual)
+        if sequence and vals.get('num_guia') == sequence.number_next_actual:
+            self.env['ir.sequence'].next_by_code('ingreso.tropa.guia')
+        # Generar nombre de referencia
+        _logger.info(f"num_guia:{vals}")
+        #vals['name'] = f"GUIA-{vals.get('num_guia', '').zfill(8)}"
+        return super().create(vals)
     
     def write(self, vals):
         res = super(IngresoTropa, self).write(vals)
@@ -93,7 +154,7 @@ class IngresoTropa(models.Model):
         return f"GUIA-{str(self.num_guia).zfill(8)}"
 
     def _generate_guia_name(self, num_guia):
-        return f"GUIA-{str(num_guia).zfill(8)}"
+        return f"GUIA-{num_guia}"
 
 class ComposicionTropa(models.Model):
     _name = 'composicion.tropa'
@@ -118,7 +179,7 @@ class ComposicionTropa(models.Model):
     @api.depends('tipo_hacienda_id','cantidad')
     def _compute_name(self):
         for record in self:
-            record.name = f"{record.tipo_hacienda_id.display_name} ({record.cantidad})"
+            record.name = f"{record.tipo_hacienda_id.display_name} ({record.cantidad_restante})"
 
     @api.depends('kg_vivos', 'total_cabezas')
     def _compute_peso_promedio(self):
@@ -150,9 +211,8 @@ class TipoAnimal(models.Model):
     name = fields.Char(string='Descripción', required=True)
     display_name = fields.Char(string='Nombre en pantall',compute='_compute_display_name')
 
-
     @api.depends('name','code')
     def _compute_display_name(self):
         for record in self:
-            record.display_name = f"[{record.code}]r{ecord.name}"
+            record.display_name = f"[{record.code}]{record.name}"
 

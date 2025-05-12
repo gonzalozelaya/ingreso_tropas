@@ -1,28 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <record id="seq_ingreso_tropa" model="ir.sequence">
-            <field name="name">Ingreso de Guia</field>
-            <field name="code">ingreso.guia</field>
-            <field name="prefix">GUIA/</field>
+
+        <record id="seq_guia_ingreso" model="ir.sequence">
+            <field name="name">Secuencia N° de Guía</field>
+            <field name="code">ingreso.tropa.guia</field>
+            <field name="prefix">0</field> <!-- Prefijo vacío para solo números -->
             <field name="padding">8</field>
-            <field name="company_id" eval="False"/>
+            <field name="use_date_range">False</field>
+            <field name="number_next_actual">6000</field> <!-- Iniciar desde 00000001 -->
         </record>
-    </data>
-    <data noupdate="1">
-        <record id="seq_ingreso_tropa" model="ir.sequence">
-            <field name="name">Ingreso de Tropa</field>
-            <field name="code">ingreso.tropa</field>
-            <field name="prefix"></field>
+
+        <record id="seq_tropa" model="ir.sequence">
+            <field name="name">Secuencia N° de Tropa</field>
+            <field name="code">ingreso.tropa.tropa</field>
+            <field name="prefix">0</field> <!-- Prefijo vacío para solo números -->
             <field name="padding">8</field>
-            <field name="company_id" eval="False"/>
+            <field name="use_date_range">False</field>
+            <field name="number_next_actual">6000</field> <!-- Iniciar desde 00000001 -->
         </record>
-    </data>
-    <record id="seq_programacion_faena" model="ir.sequence">
+        
+
+        <record id="seq_programacion_faena" model="ir.sequence">
             <field name="name">Programación de Faena</field>
             <field name="code">programacion.faena</field>
             <field name="prefix">FAENA/</field>
             <field name="padding">5</field>
             <field name="company_id" eval="False"/>
         </record>
+
+        
+    </data>
+    
+    
 </odoo>

@@ -13,6 +13,7 @@
         'views/ingreso_tropa_views.xml',
         'views/ingreso_tropa_wizard.xml',
         'views/programacion_faena_views.xml',
+        'views/transporte_views.xml',
         'wizards/programacion_wizard_views.xml',
         'data/sequence.xml',
     ],

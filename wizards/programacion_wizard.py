@@ -1,12 +1,12 @@
 from odoo import models, fields, api
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError,UserError
 
 class AgregarLineasFaenaWizard(models.TransientModel):
     _name = 'agregar.lineas.faena.wizard'
     _description = 'Wizard para agregar líneas de faena'
 
     programacion_id = fields.Many2one('programacion.faena', string='Programación', required=True)
-    tropa_id = fields.Many2one('ingreso.tropa', string='Tropa', required=True)
+    tropa_id = fields.Many2one('ingreso.tropa', string='Tropa', required=True,domain="[('estado_tropa', '=', 'pendiente')]" )
     composicion_linea_id = fields.Many2one(
         'composicion.tropa',
         string='Línea de Composición',
@@ -22,11 +22,17 @@ class AgregarLineasFaenaWizard(models.TransientModel):
     
     corral = fields.Integer(string='Corral',related = 'composicion_linea_id.corral')
     cantidad_restante = fields.Integer(string="Cant. Restante", related="composicion_linea_id.cantidad_restante")
+
+    @api.onchange('composicion_linea_id')
+    def _onchange_linea_id(self):
+        for record in self:
+            record.cabezas_programadas = record.composicion_linea_id.cantidad_restante
+    
     @api.depends('composicion_linea_id', 'cabezas_programadas')
     def _compute_kilos(self):
         for record in self:
             if record.composicion_linea_id and record.cabezas_programadas:
-                record.total_kgs_aprox = record.composicion_linea_id.kilos * record.cabezas_programadas
+                record.total_kgs_aprox = (record.composicion_linea_id.kilos/record.composicion_linea_id.cantidad) * record.cabezas_programadas
             else:
                 record.total_kgs_aprox = 0
                 
@@ -34,10 +40,16 @@ class AgregarLineasFaenaWizard(models.TransientModel):
 
     def action_agregar_linea(self):
         self.ensure_one()
-        
+
+        if self.cabezas_programadas > self.composicion_linea_id.cantidad_restante:
+            raise UserError(f'La cantidad programada ({self.cabezas_programadas}) no puede ser mayor a la restante ({self.composicion_linea_id.cantidad_restante})')
         # Obtener el último número correlativo
         ultimo_numero = 0
-        ultima_linea = self.env['programacion.faena.linea'].search([], order='numero_final desc', limit=1)
+        ultima_linea = self.env['programacion.faena.linea'].search(
+            [('programacion_id', '=', self.programacion_id.id)], 
+            order='numero_final desc', 
+            limit=1
+            )
         if ultima_linea:
             ultimo_numero = ultima_linea.numero_final
 
@@ -52,4 +64,6 @@ class AgregarLineasFaenaWizard(models.TransientModel):
             'tipo_hacienda_id': self.composicion_linea_id.tipo_hacienda_id.id,
             'usuario_id': self.env.user.id,
         })
+        self.composicion_linea_id.cantidad_restante -= self.cabezas_programadas
+        
         return {'type': 'ir.actions.act_window_close'}

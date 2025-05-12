@@ -8,10 +8,6 @@
         <form>
             <sheet>
                 <group>
-                    <group>
-                    </group>
-                    <group>
-                    </group>
                     <field name="programacion_id" invisible="1"/>
                     <field name="tropa_id"/>
                     <field name="composicion_linea_id"/>

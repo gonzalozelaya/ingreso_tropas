@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista Form para flota.personalizada -->
+    <record id="view_flota_personalizada_form" model="ir.ui.view">
+        <field name="name">tropa.transporte.form</field>
+        <field name="model">tropa.transporte</field>
+        <field name="arch" type="xml">
+            <form string="Gestión de Camiones">
+                <sheet>
+                    <group>
+                        <!-- Sección 1: Datos Básicos -->
+                        <group>
+                            <field name="tipo" widget="radio" options="{'horizontal': true}"/>
+                            <field name="dominio" placeholder="Ej: ABC123"/>
+                            <field name="marca"/>
+                            <field name="numero_senasa"/>
+                        </group>
+                        
+                        <!-- Sección 2: Chofer -->
+                       
+                        <group>
+                            <field name="codigo_chofer"/>
+                            <field name="chofer_nombre"/>
+                        </group>
+                         <notebook>
+                            <page string="Datos de Terceros" invisible= "tipo != 'T'">
+                                <group >
+                                    <field name="empresa_transporte"/>
+                                    <field name="dueno_nombre"/>
+                                    <field name="cuit_empresa_dueno"/>
+                                    <field name="chofer_tercero_nombre"/>
+                                    <field name="cuit_chofer_tercero"/>
+                                </group>
+                            </page>
+                             <page string="Vencimientos" invisible="tipo == 'T'">
+                                 <group >
+                                    <field name="vencimiento_rto"/>
+                                    <field name="vencimiento_seguro"/>
+                                    <field name="vencimiento_patente"/>
+                                    <field name="vencimiento_senasa"/>
+                                    <field name="vencimiento_jujuy"/>
+                                </group>
+                             </page>
+                        </notebook>
+                        <!-- Sección 3: Vencimientos -->
+                        
+                    </group>
+                    
+                    <!-- Sección Condicional: Terceros (visible solo si Tipo = 'T') -->
+                    
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Tree (Lista) -->
+    <record id="view_tropa_transporte_tree" model="ir.ui.view">
+        <field name="name">tropa.transporte.tree</field>
+        <field name="model">tropa.transporte</field>
+        <field name="arch" type="xml">
+            <tree string="Camiones">
+                <field name="dominio"/>
+                <field name="tipo"/>
+                <field name="marca"/>
+                <field name="chofer_nombre"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Acción y Menú -->
+    <record id="action_tropa_transporte" model="ir.actions.act_window">
+        <field name="name">Camiones</field>
+        <field name="res_model">tropa.transporte</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menú: Mismo parent que "Tipos de Hacienda" -->
+    <menuitem id="menu_flota_personalizada" name="Gestión de Camiones" parent="menu_ingreso_tropa_config" action="action_tropa_transporte" sequence="20"/>
+</odoo>
