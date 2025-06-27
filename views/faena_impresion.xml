@@ -1,0 +1,111 @@
+<odoo>
+    <record id="view_impresion_tickets_form" model="ir.ui.view">
+        <field name="name">ingreso.impresion.form</field>
+        <field name="model">ingreso.impresion</field>
+        <field name="arch" type="xml">
+            <form string="Estación de Impresión de Tickets" class="o_fullscreen">
+                <header>
+                    <button name="action_iniciar_proceso" 
+                            string="Iniciar Proceso" 
+                            type="object" 
+                            class="oe_highlight"
+                            />
+                    <field name="estado" widget="statusbar"/>
+                    
+                </header>
+                
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="ver_impresiones" type="object" class="oe_stat_button" icon="fa-print">
+                            <field name="cantidad_impresiones" widget="statinfo" string="Impresiones"/>
+                        </button>
+                    </div>
+                    <!-- Sección de información general -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <group>
+                                <field name="programacion_id" readonly="1"/>
+                                <field name="linea_actual_id" readonly="1"/>
+                                <field name="tropa_linea_actual"/>
+                                <field name="tipo" widget='radio' options="{'horizontal': true}"/>
+                            </group>
+                        </div>
+                        <div class="col-md-6">
+                            <group>
+                                <field name="labels_amount"/>
+                                <field name="corral_linea_actual"/>
+                                <field name="tipo_hacienda_linea_actual"/>
+                                <field name="iot_device_id" />
+                                <field name="manual_measurement" />
+                            </group>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p class="mt-2">
+                            Procesando: <field name="cantidad_procesada" readonly="True"/> de 
+                            <field name="cabezas_linea_actual"/>
+                        </p>
+                        
+                        <field name="iot_ip" invisible="1"/>
+                        <field name="iot_device_identifier" invisible="1"/>
+                        
+                        <field name="manual_weight" invisible="1"/>
+                        <field name="weight" invisible="1"/>
+                        <field name="iot_device_id" widget="field_many2one_iot_scale"
+                            options="{'value_field': 'weight', 'identifier': 'iot_device_identifier', 'ip_field': 'iot_ip', 'manual_measurement_field': 'manual_measurement',}"
+                            domain="[]" invisible="0"/>
+                        <div class="oe_centered_field">
+                            <field name="weight_to_show" nolabel="1"  style="font-size: 8em !important;padding:10px !important;" invisible="manual_weight"/>
+                        </div>
+                        <div class="oe_centered_field">
+                            <field name="weight" nolabel="1"  style="font-size: 8em !important;padding:10px !important;" invisible="not manual_weight"/>
+                        </div>
+                    </div>
+                        
+                    <div class="text-center mt-4 mb-4" style="font-size: 2em;">
+                        <button name="action_imprimir_etiqueta" string="Imprimir Etiqueta" type="object" class="btn-primary"/>
+                    </div>
+                    <!-- Sección central grande para datos importantes -->
+                    
+                    <!-- Observaciones -->
+                    <group>
+                        <field name="observaciones" placeholder="Ingrese observaciones relevantes..."/>
+                    </group>
+                    
+                    <!-- Botones de acción -->
+                    <footer >
+                        <div class="d-flex justify-content-between">
+                            <button name="action_imprimir_etiqueta" 
+                                    string="Imprimir Etiqueta (Enter)" 
+                                    type="object" 
+                                    class="btn-primary btn-lg"
+                                    hotkey="enter"/>
+                            <button name="action_siguiente_linea" 
+                                    string="Siguiente Línea (F2)" 
+                                    type="object" 
+                                    class="btn-secondary btn-lg"
+                                    hotkey="f2"/>
+                        </div>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_abrir_impresion_tickets" model="ir.actions.server">
+        <field name="name">Abrir Impresión de Tickets</field>
+        <field name="model_id" ref="model_ingreso_impresion"/>
+        <field name="binding_model_id" ref="model_programacion_faena"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.action_abrir_impresion_tickets()
+        </field>
+    </record>
+    
+    <menuitem id="menu_impresion_tickets" 
+              name="Impresión de Tickets" 
+              parent="menu_ingreso_tropa_root"
+              action="action_abrir_impresion_tickets"
+              sequence="20"/>
+</odoo>

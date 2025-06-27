@@ -24,6 +24,11 @@
                                 string="Agregar Líneas" 
                                 type="object" 
                                 class="oe_highlight"/>
+                        
+                        <button name="comenzar_faena" 
+                                string="Comenzar Faena" 
+                                type="object" 
+                                class="oe_highlight"/>
                         <!-- otros botones -->
                     </header>
                     <sheet>
@@ -39,6 +44,7 @@
                                 <field name="tropa"/>
                                 <field name="corral"/>
                                 <field name="tipo_hacienda_id"/>
+                                <field name="numero_actual"/>
                             </tree>
                         </field>
                     </sheet>

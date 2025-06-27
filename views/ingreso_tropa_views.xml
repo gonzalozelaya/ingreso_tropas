@@ -60,8 +60,6 @@
                 <field name="proveedor_id" string="Proveedor"/>
                 <field name="total_cabezas" string="Cabezas"/>
                 <field name="kg_vivos" string="Kg Vivos"/>
-                <field name="dominio" string="Patente"/>
-                <field name="chofer" string="Chofer"/>
                 <field name="estado_tropa" string="Estado" widget="badge" decoration-success="estado_tropa == 'hecho'" decoration-info="estado_tropa == 'enfaena'" decoration-danger="estado_tropa == 'pendiente'"/>
                 <field name="state" column_invisible="1"/>
             </tree>
@@ -114,13 +112,17 @@
                                     <field name="num_tropa" style="font-size: 18px; font-weight: bold; color: #333;"/>
                             </div>
                             <br></br>-->
+                            <field name="street" invisible="1"/>
+                            <field name="city" invisible="1"/>
+                            <field name="cuit" invisible="1"/>
+                            <field name="email" invisible="1"/>
                             <field name="num_tropa"/>
                             <field name="fecha_ingreso"/>
                             <!--<field name="hora_ingreso" widget="float_time"/>-->
                             <field name="num_guia"/>
                             <field name="cert_senasa_dta"/>
                             <field name="renspa"/>
-                            <field name="proveedor_id"/>
+                            <field name="proveedor_id" readonly="state == 'tropa'" options="{'no_open':true}" widget="many2one_with_info"/>
                             <field name="transporte_id"/>
                         </group>
                         
@@ -130,6 +132,7 @@
                             <field name="horas_viaje"/>
                             <field name="peso_promedio" readonly="1"/>
                             <field name="procedencia"/>
+                            <field name="observaciones" placeholder="Ingrese cualquier observación relevante sobre el ingreso..."/>
                         </group>
                     </group>
                     
@@ -145,36 +148,6 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Datos transporte">
-                            <group>
-                                <group>
-                                    <field name="dominio"/>
-                                    <field name="chofer"/>
-                                    <field name="camion_desc"/>
-                                </group>
-                                <group>
-                                    <field name="usuario_id" readonly="1"/>
-                                    <field name="estado_tropa"/>
-                                </group>
-                            </group>
-                        </page>
-                        
-                        <page string="Procedencia">
-                            <group>
-                                <field name="provincia_id"/>
-                                <field name="localidad"/>
-                            </group>
-                        </page>
-                        <page string="Operadores">
-                            <group>
-                                <field name="operador_id"/>
-                                <field name="operador_alternativo_id"/>
-                            </group>
-                        </page>
-                        
-                        <page string="Observaciones">
-                            <field name="observaciones" placeholder="Ingrese cualquier observación relevante sobre el ingreso..."/>
-                        </page>
                         <page string="Bajas">
                             <field name="animales_muertos_ids" mode="tree,form">
                                 <tree editable="bottom">
@@ -184,6 +157,7 @@
                                 </tree>
                             </field>
                         </page>
+                        
                     </notebook>
                 </sheet>
             </form>

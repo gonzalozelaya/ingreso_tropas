@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError,ValidationError
 import logging
 
@@ -13,8 +13,9 @@ class IngresoTropaWizard(models.Model):
         string='Número de Tropa',
         default=lambda self: self._get_next_tropa_suggestion(),
         help="Número sugerido (se confirmará al guardar)",
-        required = True
+        required = True,
     )
+    show_number_edit = fields.Boolean(string='Editar numero', default=False)
     
     # Campos relacionados (solo lectura)
     fecha_ingreso = fields.Datetime(related='guia_id.fecha_ingreso', string='Fecha Ingreso', readonly=True)
@@ -93,15 +94,10 @@ class IngresoTropaWizard(models.Model):
                             linea.corral, linea.composicion_id.corral)
         
         # Actualización del registro principal
-        sequence = self.env['ir.sequence'].search([('code','=','ingreso.tropa.guia')])
-        if sequence and self.numero_tropa == sequence.number_next_actual:
-            vals['num_guia'] = self.env['ir.sequence'].next_by_code('ingreso.tropa.guia')
-        self.guia_id.write({
-            'num_tropa': self.numero_tropa,
-            'state': 'tropa',
-            'name': f"TROPA-{self.numero_tropa.zfill(8)}"
-        })
-        
+        self.action_update_sequence(self.numero_tropa)
+        self.guia_id.write(
+            {'num_tropa':self.numero_tropa,'state':'tropa'}
+        )
         # Borrado seguro del wizard
         wizard_id = self.id
         self.unlink()
@@ -113,6 +109,24 @@ class IngresoTropaWizard(models.Model):
         if sequence:
             return sequence._get_current_sequence().number_next_actual
         return ""
+
+    def action_update_sequence(self, new_number):
+        """Actualiza la secuencia con el nuevo número"""
+        self.ensure_one()
+        try:
+            # Convertir a entero para validar
+            num = int(new_number)
+        except ValueError:
+            raise UserError(_("El número de tropa debe ser un valor numérico"))
+        
+        sequence = self.env['ir.sequence'].search([('code', '=', 'ingreso.tropa.tropa')])
+        if sequence:
+            sequence.sudo().write({
+                'number_next': num + 1  # Preparamos la secuencia para el próximo número
+            })
+            # Actualizar el número mostrado en el wizard principal
+            self.write({'numero_tropa': str(num)})
+
 
     
 
@@ -153,3 +167,30 @@ class IngresoTropaWizardLine(models.Model):
                 record.promedio_cabeza = record.kilos / record.cantidad
             else:
                 record.promedio_cabeza = 0
+
+
+class UpdateTropaSequenceWizard(models.TransientModel):
+    _name = 'update.tropa.sequence.wizard'
+    _description = 'Wizard para actualizar número de secuencia de tropa'
+    
+    current_number = fields.Char(string='Número Actual', readonly=True)
+    new_number = fields.Char(
+        string='Nuevo Número',
+        required=True,
+        help="Ingrese el nuevo número de tropa. La secuencia continuará desde este número + 1"
+    )
+    main_wizard_id = fields.Many2one('ingreso.tropa.wizard', string='Wizard Principal')
+    
+    def action_confirm(self):
+        self.ensure_one()
+        if not self.main_wizard_id:
+            raise UserError(_("No se encontró el wizard principal"))
+        
+        # Validar que el nuevo número sea diferente
+        if self.new_number == self.current_number:
+            raise UserError(_("El nuevo número debe ser diferente al actual"))
+        
+        # Delegar la actualización al wizard principal
+        self.main_wizard_id.action_update_sequence(self.new_number)
+        
+        return {'type': 'ir.actions.act_window_close'}

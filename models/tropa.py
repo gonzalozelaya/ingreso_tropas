@@ -38,16 +38,9 @@ class IngresoTropa(models.Model):
     observaciones = fields.Text(string='Observaciones')
     
     # Información del transporte
-    transporte_id = fields.Many2one('tropa.transporte', string="Camión")
-    dominio = fields.Char(string='Dominio', related ='transporte_id.dominio')
-    chofer = fields.Char(string='Chofer', related ='transporte_id.chofer_nombre')
-    camion_desc = fields.Char(string='Camión', related = 'transporte_id.marca')
+    transporte_id = fields.Many2one('fleet.vehicle', string="Camión")
     proveedor_id = fields.Many2one('res.partner', string='Proveedor', required=True)
-    
-    # Información geográfica
-    provincia_id = fields.Many2one('res.country.state', string='Provincia', required=True)
-    localidad = fields.Char(string='Localidad', required=True)
-    
+        
     # Información de usuario
     usuario_id = fields.Many2one('res.users', string='Usuario', default=lambda self: self.env.user)
     
@@ -66,6 +59,13 @@ class IngresoTropa(models.Model):
 
     state = fields.Selection([('ingreso','Ingreso'),('tropa','Tropa')],readonly=True)
     num_tropa = fields.Integer('Tropa',readonly=True)
+
+    #DATOS DE PROVEEDOR
+    street = fields.Char('Dirección',related='proveedor_id.street')
+    city = fields.Char('Ciudad',related='proveedor_id.city')
+    #state = fields.Many2one('res.country.state',string='Estado',related='proveedor_id.state_id')
+    cuit = fields.Char('CUIT',related='proveedor_id.vat')
+    email = fields.Char('Dirección',related='proveedor_id.email')
 
     def _get_next_guia(self):
         sequence = self.env['ir.sequence'].search([('code','=','ingreso.tropa.guia')])

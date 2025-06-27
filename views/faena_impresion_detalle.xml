@@ -1,0 +1,41 @@
+<odoo>
+    <record id="view_impresion_detalle_tree" model="ir.ui.view">
+        <field name="name">ingreso.impresion.detalle.tree</field>
+        <field name="model">ingreso.impresion.detalle</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="fecha"/>
+                <field name="linea_id" string="Línea"/>
+                <field name="numero_impresion" />
+                <field name="peso" string="Peso (kg)"/>
+                <field name="impresion_id" invisible="1"/>
+                <button type="object" name="reimprimir" string="Imprimir"  />
+                <button type="object" name="correccion" string="Corregir" />
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_impresion_detalle_form" model="ir.ui.view">
+        <field name="name">ingreso.impresion.detalle.form</field>
+        <field name="model">ingreso.impresion.detalle</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="fecha" readonly="1"/>
+                        <field name="linea_id" string="Línea" readonly="1"/>
+                        <field name="peso" string="Peso (kg)" readonly="1"/>
+                        <field name="impresion_id" readonly="1"/>
+                        
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <record id="action_impresion_detalle" model="ir.actions.act_window">
+        <field name="name">Detalle de Impresiones</field>
+        <field name="res_model">ingreso.impresion.detalle</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

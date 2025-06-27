@@ -21,3 +21,8 @@ access_animales_muertos_user,animales.muertos.user,model_animales_muertos,base.g
 access_animales_muertos_manager,animales.muertos.manager,model_animales_muertos,base.group_system,1,1,1,1
 access_tropa_transporte_user,tropa.transporte.user,model_tropa_transporte,base.group_user,1,1,1,0
 access_tropa_transporte_manager,tropa.transporte.manager,model_tropa_transporte,base.group_system,1,1,1,1
+access_ingreso_impresion_user,ingreso.impresion.user,model_ingreso_impresion,base.group_user,1,1,1,0
+access_ingreso_impresion_manager,ingreso.impresion.manager,model_ingreso_impresion,base.group_system,1,1,1,1
+access_ingreso_impresion_detalle_user,ingreso.impresion.detalle.user,model_ingreso_impresion_detalle,base.group_user,1,0,0,0
+access_ingreso_impresion_detalle_manager,ingreso.impresion.detalle.manager,model_ingreso_impresion_detalle,base.group_system,1,1,1,1
+access_update_tropa_sequence_wizard,update.tropa.sequence.wizard,model_update_tropa_sequence_wizard,base.group_user,1,1,1,1
